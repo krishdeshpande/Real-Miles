@@ -37,7 +37,7 @@ export default function HomePage() {
           </div>
 
           <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-foreground font-heading">
-            TeamBHP spirit. <br />
+            Automobile forum depth. <br />
             <span className="text-accent underline decoration-accent/30">Structured, faster</span>, verified.
           </h1>
 

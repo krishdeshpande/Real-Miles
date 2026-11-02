@@ -1,6 +1,6 @@
 # Real Miles — Indian Vehicle Owner Community
 
-> Anti-marketing, verified Indian vehicle owner data in the spirit of TeamBHP — structured, faster, and mobile-first.
+> Anti-marketing, verified Indian vehicle owner data in the spirit of authentic automobile forums — structured, faster, and mobile-first.
 
 ---
 
