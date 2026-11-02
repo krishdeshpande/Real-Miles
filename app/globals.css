@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Default Dark Mode (Electric Lime Accent on Near-Black) */
+  --background: #09090b;
+  --foreground: #f4f4f5;
+  --surface: #121418;
+  --surface-subtle: #181c22;
+  --surface-border: #272a30;
+  --card: #121418;
+  --card-foreground: #f4f4f5;
+  --accent: #a3e635; /* Electric Lime (WCAG AAA contrast on near-black) */
+  --accent-foreground: #09090b;
+  --accent-hover: #bef264;
+  --accent-muted: rgba(163, 230, 53, 0.15);
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #272a30;
+  --input: #1f232b;
+  --ring: #a3e635;
+}
+
+html:not(.dark) {
+  /* Light Mode */
+  --background: #f8fafc;
+  --foreground: #09090b;
+  --surface: #ffffff;
+  --surface-subtle: #f1f5f9;
+  --surface-border: #e2e8f0;
+  --card: #ffffff;
+  --card-foreground: #09090b;
+  --accent: #4d7c0f; /* Darker lime green for 4.5:1+ contrast on white */
+  --accent-foreground: #ffffff;
+  --accent-hover: #3f6212;
+  --accent-muted: rgba(77, 124, 15, 0.12);
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #f1f5f9;
+  --ring: #4d7c0f;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-space-grotesk), var(--font-inter), sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--surface-border);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
