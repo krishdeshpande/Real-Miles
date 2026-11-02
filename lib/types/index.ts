@@ -36,6 +36,14 @@ export interface TranscriptSegment {
   text: string;
 }
 
+export interface ReviewMediaItem {
+  id?: string;
+  kind: "video" | "audio" | "photo" | "odometer";
+  storage_path: string;
+  duration_s?: number | null;
+  timestamp?: string | null;
+}
+
 export interface Review {
   id: string;
   user_id: string;
@@ -51,6 +59,10 @@ export interface Review {
   raw_text?: string | null;
   structured?: StructuredReview | null;
   structured_version: number;
+  media?: ReviewMediaItem[];
+  video_url?: string | null;
+  poster_url?: string | null;
+  photo_urls?: string[];
   followups?: Array<{
     question: string;
     target_field: string;

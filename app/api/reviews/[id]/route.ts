@@ -15,6 +15,19 @@ const PatchReviewSchema = z.object({
   processing_state: z
     .enum(["uploaded", "transcribing", "extracting", "needs_confirm", "confirmed", "failed"])
     .optional(),
+  video_url: z.string().nullable().optional(),
+  poster_url: z.string().nullable().optional(),
+  photo_urls: z.array(z.string()).optional(),
+  media: z
+    .array(
+      z.object({
+        kind: z.enum(["video", "audio", "photo", "odometer"]),
+        storage_path: z.string(),
+        duration_s: z.number().nullable().optional(),
+        timestamp: z.string().nullable().optional(),
+      })
+    )
+    .optional(),
 });
 
 export const dynamic = "force-dynamic";

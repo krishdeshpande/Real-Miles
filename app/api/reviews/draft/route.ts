@@ -12,6 +12,19 @@ const DraftSchema = z.object({
   raw_text: z.string().max(6000, "Text review exceeds 6000 character limit").nullable().optional(),
   source_types: z.array(z.string()).default([]),
   media_path: z.string().nullable().optional(),
+  video_url: z.string().nullable().optional(),
+  poster_url: z.string().nullable().optional(),
+  photo_urls: z.array(z.string()).optional(),
+  media: z
+    .array(
+      z.object({
+        kind: z.enum(["video", "audio", "photo", "odometer"]),
+        storage_path: z.string(),
+        duration_s: z.number().nullable().optional(),
+        timestamp: z.string().nullable().optional(),
+      })
+    )
+    .optional(),
 });
 
 export const dynamic = "force-dynamic";
@@ -60,6 +73,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       raw_text: data.raw_text || null,
       source_types: data.source_types,
       processing_state: "uploaded",
+      video_url: data.video_url || null,
+      poster_url: data.poster_url || null,
+      photo_urls: data.photo_urls || [],
+      media: data.media || [],
     });
 
     return NextResponse.json({ ok: true, data: draft });

@@ -80,6 +80,14 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     );
   }
 
+  // Validate video duration if provided (Spec Section 3 & Scope: 60s cap)
+  if (kind === "video" && durationSeconds && durationSeconds > 60) {
+    return NextResponse.json(
+      { ok: false, error: "Video review exceeds maximum allowed duration of 60 seconds." },
+      { status: 400 }
+    );
+  }
+
   // Validate mime type
   const allowed = ALLOWED_MIME_TYPES[kind];
   if (!allowed.some((m) => mimeType.toLowerCase().startsWith(m.toLowerCase()) || m.toLowerCase() === mimeType.toLowerCase())) {

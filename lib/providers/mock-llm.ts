@@ -156,7 +156,11 @@ export function generateMockStructuredExtraction(
     best_for: ["Highway touring", "Weekend road trips"],
     avoid_if: ["Daily bumper to bumper city crawling only"],
     one_line_verdict: `A dependable ${vehicleName} that shines on open roads with honest ownership compromises.`,
-    highlight: null,
+    highlight: {
+      start_s: 12.0,
+      end_s: 24.5,
+      reason: "Owner describes heavy clutch in traffic and real-world fuel economy",
+    },
     field_confidence: {
       km_driven: kmDriven ? 0.95 : 0.5,
       real_mileage: realMileageVal ? 0.9 : 0.5,

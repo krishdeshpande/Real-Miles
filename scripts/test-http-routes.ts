@@ -163,6 +163,47 @@ async function runHttpTests() {
     })
   );
 
+  await recordTest("Upload sign: oversized video (>50MB)", 400, () =>
+    fetch(`${BASE_URL}/api/uploads/sign`, {
+      method: "POST",
+      headers: userAHeaders,
+      body: JSON.stringify({
+        filename: "giant-video.mp4",
+        mimeType: "video/mp4",
+        kind: "video",
+        sizeBytes: 60 * 1024 * 1024,
+        durationSeconds: 45,
+      }),
+    })
+  );
+
+  await recordTest("Upload sign: over-length video (>60s)", 400, () =>
+    fetch(`${BASE_URL}/api/uploads/sign`, {
+      method: "POST",
+      headers: userAHeaders,
+      body: JSON.stringify({
+        filename: "long-video.mp4",
+        mimeType: "video/mp4",
+        kind: "video",
+        sizeBytes: 15 * 1024 * 1024,
+        durationSeconds: 90,
+      }),
+    })
+  );
+
+  await recordTest("Upload sign: oversized photo (>5MB)", 400, () =>
+    fetch(`${BASE_URL}/api/uploads/sign`, {
+      method: "POST",
+      headers: userAHeaders,
+      body: JSON.stringify({
+        filename: "giant-photo.jpg",
+        mimeType: "image/jpeg",
+        kind: "photo",
+        sizeBytes: 8 * 1024 * 1024,
+      }),
+    })
+  );
+
   // 5. Rate Limit on Submissions (5 per day allowed, 6th triggers 429)
   console.log("\n--- 5. Testing Draft Submission Rate Limiting (5 allowed, 6th triggers 429) ---");
   const rateTestUser = `rate-limit-user-${Date.now()}`;

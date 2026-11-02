@@ -1,29 +1,42 @@
 "use client";
 
-import React, { useState } from "react";
-import { StructuredReview } from "@/lib/schema/review";
+import React, { useState, useRef } from "react";
+import { StructuredReview, Highlight } from "@/lib/schema/review";
+import { clampHighlight } from "@/lib/video/highlight";
 import {
   ShieldAlert,
-  Check,
-  Star,
-  Plus,
+  Play,
+  RotateCcw,
   Trash2,
-  AlertCircle,
-  HelpCircle,
-  Sparkles,
-  Lock
+  Lock,
+  Film,
+  Camera,
+  Clock,
+  Sparkles
 } from "lucide-react";
 
 interface StructuredCardEditorProps {
   initialData: StructuredReview;
   onSave: (updated: StructuredReview) => Promise<void>;
   vehicleName: string;
+  videoUrl?: string | null;
+  photoUrls?: string[];
+  mediaDuration?: number;
 }
 
-export function StructuredCardEditor({ initialData, onSave, vehicleName }: StructuredCardEditorProps) {
+export function StructuredCardEditor({
+  initialData,
+  onSave,
+  vehicleName,
+  videoUrl,
+  photoUrls,
+  mediaDuration = 60,
+}: StructuredCardEditorProps) {
   const [data, setData] = useState<StructuredReview>(initialData);
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
+
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const updateField = async <K extends keyof StructuredReview>(key: K, value: StructuredReview[K]) => {
     const updated = { ...data, [key]: value };
@@ -78,9 +91,38 @@ export function StructuredCardEditor({ initialData, onSave, vehicleName }: Struc
     await updateField("cons", updatedCons);
   };
 
+  // Video highlight adjustment (Spec Section 7 & 11: 8 to 25 seconds)
+  const handleHighlightChange = async (start: number, end: number) => {
+    const clamped = clampHighlight(
+      {
+        start_s: start,
+        end_s: end,
+        reason: data.highlight?.reason || "Owner selected clip",
+      },
+      mediaDuration || 60
+    );
+    if (clamped) {
+      await updateField("highlight", clamped);
+    }
+  };
+
+  const seekVideoTo = (seconds: number) => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = seconds;
+      videoRef.current.play().catch(() => {});
+    }
+  };
+
+  const playHighlight = () => {
+    if (videoRef.current && data.highlight) {
+      videoRef.current.currentTime = data.highlight.start_s;
+      videoRef.current.play().catch(() => {});
+    }
+  };
+
   return (
     <div className="space-y-8">
-      {/* Mock Data Warning Banner (Spec Requirement) */}
+      {/* Mock Data Warning Banner */}
       {data.mock && (
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-300 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
@@ -110,6 +152,117 @@ export function StructuredCardEditor({ initialData, onSave, vehicleName }: Struc
           </span>
         )}
       </div>
+
+      {/* VIDEO PLAYER & HIGHLIGHT CONTROLS (Milestone 3) */}
+      {videoUrl && (
+        <section className="rounded-card border border-[var(--surface-border)] bg-surface p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
+              <Film className="h-4 w-4 text-accent" />
+              Owner Review Video &amp; Clip Highlight
+            </h3>
+            {data.highlight && (
+              <span className="text-xs font-mono text-accent">
+                Highlight: {data.highlight.start_s}s – {data.highlight.end_s}s ({(data.highlight.end_s - data.highlight.start_s).toFixed(1)}s)
+              </span>
+            )}
+          </div>
+
+          <div className="overflow-hidden rounded-xl bg-black border border-[var(--surface-border)]">
+            <video
+              ref={videoRef}
+              controls
+              playsInline
+              src={videoUrl}
+              className="w-full max-h-[400px] object-contain mx-auto"
+            />
+          </div>
+
+          {/* Highlight Timeline Scrubber Controls */}
+          {data.highlight && (
+            <div className="rounded-xl border border-[var(--surface-border)] bg-background/60 p-4 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <Clock className="h-3.5 w-3.5 text-accent" />
+                    Vertical Clip Highlight (Clamped 8 to 25s)
+                  </span>
+                  <p className="text-[11px] text-muted-foreground">
+                    This span powers your vertical video short. Adjust the start and end markers below.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={playHighlight}
+                  className="self-start sm:self-auto inline-flex items-center gap-1.5 rounded-lg bg-accent/20 border border-accent/30 px-3 py-1.5 text-xs font-semibold text-accent hover:bg-accent hover:text-accent-foreground transition-colors"
+                >
+                  <Play className="h-3 w-3" />
+                  Preview Highlight Span
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Start Time: {data.highlight.start_s}s</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max={Math.max(0, (mediaDuration || 60) - 8)}
+                    step="0.5"
+                    value={data.highlight.start_s}
+                    onChange={(e) =>
+                      handleHighlightChange(parseFloat(e.target.value), data.highlight?.end_s || parseFloat(e.target.value) + 12)
+                    }
+                    className="w-full accent-lime-500 cursor-pointer"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>End Time: {data.highlight.end_s}s</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={Math.min(mediaDuration || 60, (data.highlight.start_s || 0) + 8)}
+                    max={mediaDuration || 60}
+                    step="0.5"
+                    value={data.highlight.end_s}
+                    onChange={(e) =>
+                      handleHighlightChange(data.highlight?.start_s || 0, parseFloat(e.target.value))
+                    }
+                    className="w-full accent-lime-500 cursor-pointer"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ATTACHED PHOTOS PREVIEW */}
+      {photoUrls && photoUrls.length > 0 && (
+        <section className="rounded-card border border-[var(--surface-border)] bg-surface p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground flex items-center gap-1.5">
+              <Camera className="h-3.5 w-3.5 text-accent" />
+              Attached Photos ({photoUrls.length}/8 • GPS Exif Stripped)
+            </h3>
+            <span className="text-[11px] text-muted-foreground font-mono">Location data scrubbed</span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {photoUrls.map((url, idx) => (
+              <div key={idx} className="relative aspect-video rounded-lg overflow-hidden border border-[var(--surface-border)] bg-black">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={url} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover" />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Core Telemetry Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -245,7 +398,6 @@ export function StructuredCardEditor({ initialData, onSave, vehicleName }: Struc
 
       {/* Pros & Cons */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Pros */}
         <div className="rounded-xl border border-[var(--surface-border)] bg-background/60 p-5 space-y-3">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-accent">
             Verified Positives (Pros)
@@ -278,7 +430,6 @@ export function StructuredCardEditor({ initialData, onSave, vehicleName }: Struc
           </div>
         </div>
 
-        {/* Cons */}
         <div className="rounded-xl border border-[var(--surface-border)] bg-background/60 p-5 space-y-3">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-destructive">
             Verified Negatives (Cons)
@@ -312,7 +463,7 @@ export function StructuredCardEditor({ initialData, onSave, vehicleName }: Struc
         </div>
       </div>
 
-      {/* Reported Mechanical Issues */}
+      {/* Reported Component Issues */}
       <div className="rounded-xl border border-[var(--surface-border)] bg-background/60 p-5 space-y-3">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
           Reported Component Issues
@@ -350,26 +501,38 @@ export function StructuredCardEditor({ initialData, onSave, vehicleName }: Struc
         />
       </div>
 
-      {/* Evidence Quotes Verified Verbatim */}
+      {/* Evidence Quotes with Video Seeking Links */}
       {data.evidence && data.evidence.length > 0 && (
-        <div className="rounded-xl border border-accent/20 bg-accent/5 p-4 space-y-2">
+        <div className="rounded-xl border border-accent/20 bg-accent/5 p-4 space-y-2.5">
           <span className="text-[11px] font-semibold text-accent uppercase tracking-wider block">
             Verbatim Evidence Quotes ({data.evidence.length} verified)
           </span>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {data.evidence.map((ev, idx) => (
-              <div key={idx} className="text-xs text-foreground/90 italic border-l-2 border-accent pl-2.5">
-                &quot;{ev.quote}&quot; <span className="text-[10px] text-muted-foreground not-italic font-mono">({ev.field})</span>
+              <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-l-2 border-accent pl-3 py-0.5 text-xs">
+                <span className="italic text-foreground/90">
+                  &quot;{ev.quote}&quot; <span className="text-[10px] text-muted-foreground not-italic font-mono">({ev.field})</span>
+                </span>
+                {ev.start_s !== null && videoUrl && (
+                  <button
+                    type="button"
+                    onClick={() => seekVideoTo(ev.start_s as number)}
+                    className="self-start sm:self-auto inline-flex items-center gap-1 text-[11px] font-mono text-accent hover:underline font-semibold"
+                  >
+                    <Play className="h-2.5 w-2.5" />
+                    Jump to {ev.start_s}s
+                  </button>
+                )}
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Bottom Publish Button (Disabled for M2 per Spec Scope) */}
+      {/* Bottom Publish Button (Strictly Disabled with label "Verification comes next") */}
       <div className="pt-4 border-t border-[var(--surface-border)] flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="text-xs text-muted-foreground">
-          Step 4 complete. Review is saved in draft mode.
+          Step 4 complete. Review record is saved in draft mode.
         </div>
         <button
           type="button"

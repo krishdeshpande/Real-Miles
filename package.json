@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "tsx scripts/seed-vehicles.ts",
-    "test": "tsx --test tests/schema-and-quotes.test.ts",
+    "test": "tsx --test tests/**/*.test.ts",
     "test:extraction": "tsx scripts/test-extraction.ts"
   },
   "dependencies": {
