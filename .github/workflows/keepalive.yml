@@ -1,0 +1,22 @@
+name: Supabase and Vercel Keepalive
+
+on:
+  schedule:
+    # Run daily at 06:00 UTC to prevent Supabase free tier inactivity pause
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  ping-health:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping OwnerLog Health Check
+        run: |
+          URL="${{ secrets.PRODUCTION_APP_URL }}/api/health"
+          echo "Pinging health endpoint at $URL"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL" || echo "000")
+          echo "Response code: $STATUS"
+          if [ "$STATUS" -ne 200 ]; then
+            echo "Health check did not return 200, status was $STATUS"
+            exit 1
+          fi
